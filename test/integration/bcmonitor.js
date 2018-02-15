@@ -62,7 +62,7 @@ describe('Blockchain monitor', function() {
     });
   });
 
-  it('should notify copayers of incoming txs', function(done) {
+  it('should notify zelers of incoming txs', function(done) {
     server.createAddress({}, function(err, address) {
       should.not.exist(err);
 
@@ -90,7 +90,7 @@ describe('Blockchain monitor', function() {
     });
   });
 
-  it('should not notify copayers of incoming txs more than once', function(done) {
+  it('should not notify zelers of incoming txs more than once', function(done) {
     server.createAddress({}, function(err, address) {
       should.not.exist(err);
 
@@ -117,7 +117,7 @@ describe('Blockchain monitor', function() {
     });
   });
 
-  it('should notify copayers of tx confirmation', function(done) {
+  it('should notify zelers of tx confirmation', function(done) {
     server.createAddress({}, function(err, address) {
       should.not.exist(err);
 
@@ -148,7 +148,7 @@ describe('Blockchain monitor', function() {
               notifications.length.should.equal(1);
               var n = notifications[0];
               n.walletId.should.equal(wallet.id);
-              n.creatorId.should.equal(server.copayerId);
+              n.creatorId.should.equal(server.zelerId);
               n.data.txid.should.equal('123');
               done();
             });

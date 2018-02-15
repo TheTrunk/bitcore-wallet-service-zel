@@ -15,7 +15,7 @@ BWS can usually be installed within minutes and accommodates all the needed infr
 
 See [Bitcore-wallet-client](https://github.com/bitcoinz-wallets/bitcore-wallet-client-zel) for the *official* client library that communicates to BWS and verifies its response. Also check [Bitcore-wallet](https://github.com/bitpay/bitcore-wallet) for a simple CLI wallet implementation that relies on BWS.
 
-BWS is been used in production enviroments for [Copay Wallet](https://copay.io), [Bitpay App wallet](https://bitpay.com/wallet) and others.  
+BWS is been used in production enviroments for [Copay Wallet](https://zel.io), [Bitpay App wallet](https://bitpay.com/wallet) and others.  
 
 More about BWS at https://blog.bitpay.com/announcing-the-bitcore-wallet-suite/
 
@@ -35,12 +35,12 @@ BWS uses by default a Request Rate Limitation to CreateWallet endpoint. If you n
 
 # Security Considerations
  * Private keys are never sent to BWS. Copayers store them locally.
- * Extended public keys are stored on BWS. This allows BWS to easily check wallet balance, send offline notifications to copayers, etc.
- * During wallet creation, the initial copayer creates a wallet secret that contains a private key. All copayers need to prove they have the secret by signing their information with this private key when joining the wallet. The secret should be shared using secured channels.
- * A copayer could join the wallet more than once, and there is no mechanism to prevent this. See [wallet](https://github.com/bitpay/bitcore-wallet)'s confirm command, for a method for confirming copayers.
+ * Extended public keys are stored on BWS. This allows BWS to easily check wallet balance, send offline notifications to zelers, etc.
+ * During wallet creation, the initial zeler creates a wallet secret that contains a private key. All zelers need to prove they have the secret by signing their information with this private key when joining the wallet. The secret should be shared using secured channels.
+ * A zeler could join the wallet more than once, and there is no mechanism to prevent this. See [wallet](https://github.com/bitpay/bitcore-wallet)'s confirm command, for a method for confirming zelers.
  * All BWS responses are verified:
-  * Addresses and change addresses are derived independently and locally by the copayers from their local data.
-  * TX Proposals templates are signed by copayers and verified by others, so the BWS cannot create or tamper with them.
+  * Addresses and change addresses are derived independently and locally by the zelers from their local data.
+  * TX Proposals templates are signed by zelers and verified by others, so the BWS cannot create or tamper with them.
 
 # REST API
 ## Authentication
@@ -78,7 +78,7 @@ Returns:
  * proposalId
  * creatorName
  * message
- * actions array ['createdOn', 'type', 'copayerId', 'copayerName', 'comment']
+ * actions array ['createdOn', 'type', 'zelerId', 'zelerName', 'comment']
 
 
 `/v1/txproposals/`:  Get Wallet's pending transaction proposals and their status
@@ -121,24 +121,24 @@ Returns:
  * name: Name of the wallet
  * m: Number of required peers to sign transactions
  * n: Number of total peers on the wallet
- * pubKey: Wallet Creation Public key to check joining copayer's signatures (the private key is unknown by BWS and must be communicated
+ * pubKey: Wallet Creation Public key to check joining zeler's signatures (the private key is unknown by BWS and must be communicated
   by the creator peer to other peers).
 
 Returns:
  * walletId: Id of the new created wallet
 
 
-`/v1/wallets/:id/copayers/`: Join a Wallet in creation
+`/v1/wallets/:id/zelers/`: Join a Wallet in creation
 
 Required Arguments:
  * walletId: Id of the wallet to join
  * name: Copayer Name
- * xPubKey - Extended Public Key for this copayer.
- * requestPubKey - Public Key used to check requests from this copayer.
- * copayerSignature - Signature used by other copayers to verify that the copayer joining knows the wallet secret.
+ * xPubKey - Extended Public Key for this zeler.
+ * requestPubKey - Public Key used to check requests from this zeler.
+ * zelerSignature - Signature used by other zelers to verify that the zeler joining knows the wallet secret.
 
 Returns:
- * copayerId: Assigned ID of the copayer (to be used on x-identity header)
+ * zelerId: Assigned ID of the zeler (to be used on x-identity header)
  * wallet: Object with wallet's information
 
 `/v1/txproposals/`: Add a new transaction proposal
@@ -182,7 +182,7 @@ Returns:
 `/v1/addresses/scan`: Start an address scan process looking for activity.
 
  Optional Arguments:
- * includeCopayerBranches: Scan all copayer branches following BIP45 recommendation (defaults to false).
+ * includeCopayerBranches: Scan all zeler branches following BIP45 recommendation (defaults to false).
 
 `/v1/txconfirmations/`: Subscribe to receive push notifications when the specified transaction gets confirmed.
 Required Arguments:

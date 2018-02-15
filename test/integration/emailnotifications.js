@@ -33,10 +33,10 @@ describe('Email notifications', function() {
           wallet = w;
 
           var i = 0;
-          async.eachSeries(w.copayers, function(copayer, next) {
-            helpers.getAuthServer(copayer.id, function(server) {
+          async.eachSeries(w.zelers, function(zeler, next) {
+            helpers.getAuthServer(zeler.id, function(server) {
               server.savePreferences({
-                email: 'copayer' + (++i) + '@domain.com',
+                email: 'zeler' + (++i) + '@domain.com',
                 unit: 'bit',
               }, next);
             });
@@ -70,7 +70,7 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should notify copayers a new tx proposal has been created', function(done) {
+    it('should notify zelers a new tx proposal has been created', function(done) {
       var _readTemplateFile_old = emailService._readTemplateFile;
       emailService._readTemplateFile = function(language, filename, cb) {
         if (_.endsWith(filename, '.html')) {
@@ -87,14 +87,14 @@ describe('Email notifications', function() {
           }],
           feePerKb: 100e2
         };
-        helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+        helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
           setTimeout(function() {
             var calls = mailerStub.sendMail.getCalls();
             calls.length.should.equal(2);
             var emails = _.map(calls, function(c) {
               return c.args[0];
             });
-            _.difference(['copayer2@domain.com', 'copayer3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
+            _.difference(['zeler2@domain.com', 'zeler3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
             var one = emails[0];
             one.from.should.equal('bws@dummy.net');
             one.subject.should.contain('New payment proposal');
@@ -124,7 +124,7 @@ describe('Email notifications', function() {
           }],
           feePerKb: 100e2
         };
-        helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+        helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
           setTimeout(function() {
             var calls = mailerStub.sendMail.getCalls();
             calls.length.should.equal(0);
@@ -139,7 +139,7 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should notify copayers a new outgoing tx has been created', function(done) {
+    it('should notify zelers a new outgoing tx has been created', function(done) {
       var _readTemplateFile_old = emailService._readTemplateFile;
       emailService._readTemplateFile = function(language, filename, cb) {
         if (_.endsWith(filename, '.html')) {
@@ -161,16 +161,16 @@ describe('Email notifications', function() {
         async.waterfall([
 
           function(next) {
-            helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+            helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
               next(null, tx);
             });
           },
           function(t, next) {
             txp = t;
             async.eachSeries(_.range(2), function(i, next) {
-              var copayer = TestData.copayers[i];
-              helpers.getAuthServer(copayer.id44btc, function(server) {
-                var signatures = helpers.clientSign(txp, copayer.xPrivKey_44H_0H_0H);
+              var zeler = TestData.zelers[i];
+              helpers.getAuthServer(zeler.id44btc, function(server) {
+                var signatures = helpers.clientSign(txp, zeler.xPrivKey_44H_0H_0H);
                 server.signTx({
                   txProposalId: txp.id,
                   signatures: signatures,
@@ -195,7 +195,7 @@ describe('Email notifications', function() {
             var emails = _.map(_.takeRight(calls, 3), function(c) {
               return c.args[0];
             });
-            _.difference(['copayer1@domain.com', 'copayer2@domain.com', 'copayer3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
+            _.difference(['zeler1@domain.com', 'zeler2@domain.com', 'zeler3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
             var one = emails[0];
             one.from.should.equal('bws@dummy.net');
             one.subject.should.contain('Payment sent');
@@ -213,7 +213,7 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should notify copayers a tx has been finally rejected', function(done) {
+    it('should notify zelers a tx has been finally rejected', function(done) {
       helpers.stubUtxos(server, wallet, 1, function() {
         var txOpts = {
           outputs: [{
@@ -227,15 +227,15 @@ describe('Email notifications', function() {
         async.waterfall([
 
           function(next) {
-            helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+            helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
               next(null, tx);
             });
           },
           function(txp, next) {
             txpId = txp.id;
             async.eachSeries(_.range(1, 3), function(i, next) {
-              var copayer = TestData.copayers[i];
-              helpers.getAuthServer(copayer.id44btc, function(server) {
+              var zeler = TestData.zelers[i];
+              helpers.getAuthServer(zeler.id44btc, function(server) {
                 server.rejectTx({
                   txProposalId: txp.id,
                 }, next);
@@ -250,7 +250,7 @@ describe('Email notifications', function() {
             var emails = _.map(_.takeRight(calls, 2), function(c) {
               return c.args[0];
             });
-            _.difference(['copayer1@domain.com', 'copayer2@domain.com'], _.pluck(emails, 'to')).should.be.empty;
+            _.difference(['zeler1@domain.com', 'zeler2@domain.com'], _.pluck(emails, 'to')).should.be.empty;
             var one = emails[0];
             one.from.should.equal('bws@dummy.net');
             one.subject.should.contain('Payment proposal rejected');
@@ -264,7 +264,7 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should notify copayers of incoming txs', function(done) {
+    it('should notify zelers of incoming txs', function(done) {
       server.createAddress({}, function(err, address) {
         should.not.exist(err);
 
@@ -280,7 +280,7 @@ describe('Email notifications', function() {
             var emails = _.map(calls, function(c) {
               return c.args[0];
             });
-            _.difference(['copayer1@domain.com', 'copayer2@domain.com', 'copayer3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
+            _.difference(['zeler1@domain.com', 'zeler2@domain.com', 'zeler3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
             var one = emails[0];
             one.from.should.equal('bws@dummy.net');
             one.subject.should.contain('New payment received');
@@ -295,7 +295,7 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should notify copayers when tx is confirmed if they are subscribed', function(done) {
+    it('should notify zelers when tx is confirmed if they are subscribed', function(done) {
       server.createAddress({}, function(err, address) {
         should.not.exist(err);
 
@@ -312,7 +312,7 @@ describe('Email notifications', function() {
               var calls = mailerStub.sendMail.getCalls();
               calls.length.should.equal(1);
               var email = calls[0].args[0];
-              email.to.should.equal('copayer1@domain.com');
+              email.to.should.equal('zeler1@domain.com');
               email.from.should.equal('bws@dummy.net');
               email.subject.should.contain('Transaction confirmed');
               server.storage.fetchUnsentEmails(function(err, unsent) {
@@ -328,9 +328,9 @@ describe('Email notifications', function() {
 
 
     it('should notify each email address only once', function(done) {
-      // Set same email address for copayer1 and copayer2
+      // Set same email address for zeler1 and zeler2
       server.savePreferences({
-        email: 'copayer2@domain.com',
+        email: 'zeler2@domain.com',
       }, function(err) {
         server.createAddress({}, function(err, address) {
           should.not.exist(err);
@@ -347,7 +347,7 @@ describe('Email notifications', function() {
               var emails = _.map(calls, function(c) {
                 return c.args[0];
               });
-              _.difference(['copayer2@domain.com', 'copayer3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
+              _.difference(['zeler2@domain.com', 'zeler3@domain.com'], _.pluck(emails, 'to')).should.be.empty;
               var one = emails[0];
               one.from.should.equal('bws@dummy.net');
               one.subject.should.contain('New payment received');
@@ -363,10 +363,10 @@ describe('Email notifications', function() {
       });
     });
 
-    it('should build each email using preferences of the copayers', function(done) {
-      // Set same email address for copayer1 and copayer2
+    it('should build each email using preferences of the zelers', function(done) {
+      // Set same email address for zeler1 and zeler2
       server.savePreferences({
-        email: 'copayer1@domain.com',
+        email: 'zeler1@domain.com',
         language: 'es',
         unit: 'btc',
       }, function(err) {
@@ -386,13 +386,13 @@ describe('Email notifications', function() {
                 return c.args[0];
               });
               var spanish = _.find(emails, {
-                to: 'copayer1@domain.com'
+                to: 'zeler1@domain.com'
               });
               spanish.from.should.equal('bws@dummy.net');
               spanish.subject.should.contain('Nuevo pago recibido');
               spanish.text.should.contain('0.123 BTC');
               var english = _.find(emails, {
-                to: 'copayer2@domain.com'
+                to: 'zeler2@domain.com'
               });
               english.from.should.equal('bws@dummy.net');
               english.subject.should.contain('New payment received');
@@ -424,7 +424,7 @@ describe('Email notifications', function() {
             }],
             feePerKb: 100e2
           };
-          helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+          helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
             setTimeout(function() {
               var calls = mailerStub.sendMail.getCalls();
               calls.length.should.equal(2);
@@ -448,10 +448,10 @@ describe('Email notifications', function() {
           wallet = w;
 
           var i = 0;
-          async.eachSeries(w.copayers, function(copayer, next) {
-            helpers.getAuthServer(copayer.id, function(server) {
+          async.eachSeries(w.zelers, function(zeler, next) {
+            helpers.getAuthServer(zeler.id, function(server) {
               server.savePreferences({
-                email: 'copayer' + (++i) + '@domain.com',
+                email: 'zeler' + (++i) + '@domain.com',
                 unit: 'bit',
               }, next);
             });
@@ -484,7 +484,7 @@ describe('Email notifications', function() {
         });
       });
 
-      it('should NOT notify copayers a new tx proposal has been created', function(done) {
+      it('should NOT notify zelers a new tx proposal has been created', function(done) {
         helpers.stubUtxos(server, wallet, [1, 1], function() {
           var txOpts = {
             outputs: [{
@@ -493,7 +493,7 @@ describe('Email notifications', function() {
             }],
             feePerKb: 100e2
           };
-          helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+          helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
             setTimeout(function() {
               var calls = mailerStub.sendMail.getCalls();
               calls.length.should.equal(0);

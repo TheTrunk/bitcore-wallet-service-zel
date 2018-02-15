@@ -36,13 +36,13 @@ describe('Push notifications', function() {
           wallet = w;
 
           var i = 0;
-          async.eachSeries(w.copayers, function(copayer, next) {
-            helpers.getAuthServer(copayer.id, function(server) {
+          async.eachSeries(w.zelers, function(zeler, next) {
+            helpers.getAuthServer(zeler.id, function(server) {
               async.parallel([
 
                 function(done) {
                   server.savePreferences({
-                    email: 'copayer' + (++i) + '@domain.com',
+                    email: 'zeler' + (++i) + '@domain.com',
                     language: 'en',
                     unit: 'bit',
                   }, done);
@@ -86,7 +86,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should build each notifications using preferences of the copayers', function(done) {
+    it('should build each notifications using preferences of the zelers', function(done) {
       server.savePreferences({
         language: 'en',
         unit: 'bit',
@@ -139,7 +139,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers when payment is received', function(done) {
+    it('should notify zelers when payment is received', function(done) {
       server.createAddress({}, function(err, address) {
         should.not.exist(err);
 
@@ -160,7 +160,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers when tx is confirmed if they are subscribed', function(done) {
+    it('should notify zelers when tx is confirmed if they are subscribed', function(done) {
       server.createAddress({}, function(err, address) {
         should.not.exist(err);
 
@@ -191,13 +191,13 @@ describe('Push notifications', function() {
           server = s;
           wallet = w;
           var i = 0;
-          async.eachSeries(w.copayers, function(copayer, next) {
-            helpers.getAuthServer(copayer.id, function(server) {
+          async.eachSeries(w.zelers, function(zeler, next) {
+            helpers.getAuthServer(zeler.id, function(server) {
               async.parallel([
 
                 function(done) {
                   server.savePreferences({
-                    email: 'copayer' + (++i) + '@domain.com',
+                    email: 'zeler' + (++i) + '@domain.com',
                     language: 'en',
                     unit: 'bit',
                   }, done);
@@ -241,9 +241,9 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should build each notifications using preferences of the copayers', function(done) {
+    it('should build each notifications using preferences of the zelers', function(done) {
       server.savePreferences({
-        email: 'copayer1@domain.com',
+        email: 'zeler1@domain.com',
         language: 'es',
         unit: 'btc',
       }, function(err) {
@@ -281,7 +281,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers when payment is received', function(done) {
+    it('should notify zelers when payment is received', function(done) {
       server.createAddress({}, function(err, address) {
         should.not.exist(err);
 
@@ -325,7 +325,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers a new tx proposal has been created', function(done) {
+    it('should notify zelers a new tx proposal has been created', function(done) {
       helpers.stubUtxos(server, wallet, [1, 1], function() {
         server.createAddress({}, function(err, address) {
           should.not.exist(err);
@@ -347,7 +347,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers a tx has been finally rejected', function(done) {
+    it('should notify zelers a tx has been finally rejected', function(done) {
       helpers.stubUtxos(server, wallet, 1, function() {
         var txOpts = {
           outputs: [{
@@ -361,15 +361,15 @@ describe('Push notifications', function() {
         async.waterfall([
 
           function(next) {
-            helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+            helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
               next(null, tx);
             });
           },
           function(txp, next) {
             txpId = txp.id;
             async.eachSeries(_.range(1, 3), function(i, next) {
-              var copayer = TestData.copayers[i];
-              helpers.getAuthServer(copayer.id44btc, function(server) {
+              var zeler = TestData.zelers[i];
+              helpers.getAuthServer(zeler.id44btc, function(server) {
                 server.rejectTx({
                   txProposalId: txp.id,
                 }, next);
@@ -392,7 +392,7 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers a new outgoing tx has been created', function(done) {
+    it('should notify zelers a new outgoing tx has been created', function(done) {
       helpers.stubUtxos(server, wallet, 1, function() {
         var txOpts = {
           outputs: [{
@@ -406,17 +406,17 @@ describe('Push notifications', function() {
         async.waterfall([
 
           function(next) {
-            helpers.createAndPublishTx(server, txOpts, TestData.copayers[0].privKey_1H_0, function(tx) {
+            helpers.createAndPublishTx(server, txOpts, TestData.zelers[0].privKey_1H_0, function(tx) {
               next(null, tx);
             });
           },
           function(t, next) {
             txp = t;
             async.eachSeries(_.range(1, 3), function(i, next) {
-              var copayer = TestData.copayers[i];
-              helpers.getAuthServer(copayer.id44btc, function(s) {
+              var zeler = TestData.zelers[i];
+              helpers.getAuthServer(zeler.id44btc, function(s) {
                 server = s;
-                var signatures = helpers.clientSign(txp, copayer.xPrivKey_44H_0H_0H);
+                var signatures = helpers.clientSign(txp, zeler.xPrivKey_44H_0H_0H);
                 server.signTx({
                   txProposalId: txp.id,
                   signatures: signatures,
@@ -445,8 +445,8 @@ describe('Push notifications', function() {
             args[0].body.notification.title.should.contain('Payment sent');
             args[1].body.notification.title.should.contain('Payment sent');
 
-            sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(server.copayerId)).should.not.equal(args[0].body.data.copayerId);
-            sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(server.copayerId)).should.not.equal(args[1].body.data.copayerId);
+            sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(server.zelerId)).should.not.equal(args[0].body.data.zelerId);
+            sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(server.zelerId)).should.not.equal(args[1].body.data.zelerId);
             done();
           }, 100);
         });
@@ -493,22 +493,22 @@ describe('Push notifications', function() {
       });
     });
 
-    it('should notify copayers when a new copayer just joined into your wallet except the one who joined', function(done) {
+    it('should notify zelers when a new zeler just joined into your wallet except the one who joined', function(done) {
       async.eachSeries(_.range(3), function(i, next) {
-        var copayerOpts = helpers.getSignedCopayerOpts({
+        var zelerOpts = helpers.getSignedCopayerOpts({
           walletId: walletId,
-          name: 'copayer ' + (i + 1),
-          xPubKey: TestData.copayers[i].xPubKey_44H_0H_0H,
-          requestPubKey: TestData.copayers[i].pubKey_1H_0,
+          name: 'zeler ' + (i + 1),
+          xPubKey: TestData.zelers[i].xPubKey_44H_0H_0H,
+          requestPubKey: TestData.zelers[i].pubKey_1H_0,
           customData: 'custom data ' + (i + 1),
         });
 
-        server.joinWallet(copayerOpts, function(err, res) {
+        server.joinWallet(zelerOpts, function(err, res) {
           if (err) return next(err);
 
-          helpers.getAuthServer(res.copayerId, function(server) {
+          helpers.getAuthServer(res.zelerId, function(server) {
             server.pushNotificationsSubscribe({
-              token: 'token:' + copayerOpts.name,
+              token: 'token:' + zelerOpts.name,
               packageName: 'com.wallet',
               platform: 'Android',
             }, next);
@@ -521,36 +521,36 @@ describe('Push notifications', function() {
           var args = _.filter(_.map(calls, function(call) {
             return call.args[0];
           }), function(arg) {
-            return arg.body.notification.title == 'New copayer';
+            return arg.body.notification.title == 'New zeler';
           });
 
           server.getWallet(null, function(err, wallet) {
             /*
-              First call - copayer2 joined
-              copayer2 should notify to copayer1
-              copayer2 should NOT be notifyed
+              First call - zeler2 joined
+              zeler2 should notify to zeler1
+              zeler2 should NOT be notifyed
             */
-            var hashedCopayerIds = _.map(wallet.copayers, function(copayer) {
-              return sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(copayer.id));
+            var hashedCopayerIds = _.map(wallet.zelers, function(zeler) {
+              return sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(zeler.id));
             });
-            hashedCopayerIds[0].should.equal((args[0].body.data.copayerId));
-            hashedCopayerIds[1].should.not.equal((args[0].body.data.copayerId));
+            hashedCopayerIds[0].should.equal((args[0].body.data.zelerId));
+            hashedCopayerIds[1].should.not.equal((args[0].body.data.zelerId));
 
             /*
-              Second call - copayer3 joined
-              copayer3 should notify to copayer1
+              Second call - zeler3 joined
+              zeler3 should notify to zeler1
             */
-            hashedCopayerIds[0].should.equal((args[1].body.data.copayerId));
+            hashedCopayerIds[0].should.equal((args[1].body.data.zelerId));
 
             /*
-              Third call - copayer3 joined
-              copayer3 should notify to copayer2
+              Third call - zeler3 joined
+              zeler3 should notify to zeler2
             */
-            hashedCopayerIds[1].should.equal((args[2].body.data.copayerId));
+            hashedCopayerIds[1].should.equal((args[2].body.data.zelerId));
 
-            // copayer3 should NOT notify any other copayer
-            hashedCopayerIds[2].should.not.equal((args[1].body.data.copayerId));
-            hashedCopayerIds[2].should.not.equal((args[2].body.data.copayerId));
+            // zeler3 should NOT notify any other zeler
+            hashedCopayerIds[2].should.not.equal((args[1].body.data.zelerId));
+            hashedCopayerIds[2].should.not.equal((args[2].body.data.zelerId));
             done();
           });
         }, 100);
