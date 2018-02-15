@@ -38,7 +38,7 @@ var config = {
     },
   },
   blockchainExplorerOpts: {
-    zel: {
+    ZEL: {
       livenet: {
         provider: 'insight',
         url: 'https://explorer2.zel.cash:443',
@@ -61,7 +61,7 @@ var config = {
   pushNotificationsOpts: {
     templatePath: './lib/templates',
     defaultLanguage: 'en',
-    defaultUnit: 'zel',
+    defaultUnit: 'ZEL',
     subjectPrefix: '',
     pushServerUrl: 'https://fcm.googleapis.com/fcm',
     authorizationKey: '',
