@@ -96,18 +96,18 @@ helpers.signRequestPubKey = function(requestPubKey, xPrivKey) {
   return helpers.signMessage(requestPubKey, priv);
 };
 
-helpers.getAuthServer = function(zelerId, cb) {
+helpers.getAuthServer = function(copayerId, cb) {
   var verifyStub = sinon.stub(WalletService.prototype, '_verifySignature');
   verifyStub.returns(true);
 
   WalletService.getInstanceWithAuth({
-    zelerId: zelerId,
+    copayerId: copayerId,
     message: 'dummy',
     signature: 'dummy',
     clientVersion: helpers.CLIENT_VERSION,
   }, function(err, server) {
     verifyStub.restore();
-    if (err || !server) throw new Error('Could not login as zelerId ' + zelerId + ' err: ' + err);
+    if (err || !server) throw new Error('Could not login as copayerId ' + copayerId + ' err: ' + err);
     return cb(server);
   });
 };
@@ -125,7 +125,7 @@ helpers._generateCopayersTestData = function() {
     'xprv9s21ZrQH143K2wcRMP75tAEL5JnUx4xU2AbUBQzVVUDP7DHZJkjF3kaRE7tcnPLLLL9PGjYTWTJmCQPaQ4GGzgWEUFJ6snwJG9YnQHBFRNR'
   ];
 
-  console.log('var zelers = [');
+  console.log('var copayers = [');
   _.each(xPrivKeys, function(xPrivKeyStr, c) {
     var xpriv = Bitcore.HDPrivateKey(xPrivKeyStr);
     var xpub = Bitcore.HDPublicKey(xpriv);
@@ -163,7 +163,7 @@ helpers._generateCopayersTestData = function() {
 
 helpers.getSignedCopayerOpts = function(opts) {
   var hash = WalletService._getCopayerHash(opts.name, opts.xPubKey, opts.requestPubKey);
-  opts.zelerSignature = helpers.signMessage(hash, TestData.keyPair.priv);
+  opts.copayerSignature = helpers.signMessage(hash, TestData.keyPair.priv);
   return opts;
 };
 
@@ -175,7 +175,7 @@ helpers.createAndJoinWallet = function(m, n, opts, cb) {
   opts = opts || {};
 
   var server = new WalletService();
-  var zelerIds = [];
+  var copayerIds = [];
   var offset = opts.offset || 0;
 
   var walletOpts = {
@@ -193,26 +193,26 @@ helpers.createAndJoinWallet = function(m, n, opts, cb) {
     if (err) return cb(err);
 
     async.each(_.range(n), function(i, cb) {
-      var zelerData = TestData.zelers[i + offset];
-      var zelerOpts = helpers.getSignedCopayerOpts({
+      var copayerData = TestData.copayers[i + offset];
+      var copayerOpts = helpers.getSignedCopayerOpts({
         walletId: walletId,
         coin: opts.coin,
-        name: 'zeler ' + (i + 1),
-        xPubKey: (_.isBoolean(opts.supportBIP44AndP2PKH) && !opts.supportBIP44AndP2PKH) ? zelerData.xPubKey_45H : zelerData.xPubKey_44H_0H_0H,
-        requestPubKey: zelerData.pubKey_1H_0,
+        name: 'copayer ' + (i + 1),
+        xPubKey: (_.isBoolean(opts.supportBIP44AndP2PKH) && !opts.supportBIP44AndP2PKH) ? copayerData.xPubKey_45H : copayerData.xPubKey_44H_0H_0H,
+        requestPubKey: copayerData.pubKey_1H_0,
         customData: 'custom data ' + (i + 1),
       });
       if (_.isBoolean(opts.supportBIP44AndP2PKH))
-        zelerOpts.supportBIP44AndP2PKH = opts.supportBIP44AndP2PKH;
+        copayerOpts.supportBIP44AndP2PKH = opts.supportBIP44AndP2PKH;
 
-      server.joinWallet(zelerOpts, function(err, result) {
+      server.joinWallet(copayerOpts, function(err, result) {
         should.not.exist(err);
-        zelerIds.push(result.zelerId);
+        copayerIds.push(result.copayerId);
         return cb(err);
       });
     }, function(err) {
       if (err) return new Error('Could not generate wallet');
-      helpers.getAuthServer(zelerIds[0], function(s) {
+      helpers.getAuthServer(copayerIds[0], function(s) {
         s.getWallet({}, function(err, w) {
           cb(s, w);
         });

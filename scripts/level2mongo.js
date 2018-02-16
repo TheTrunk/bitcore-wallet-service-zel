@@ -54,9 +54,9 @@ function run(cb) {
 };
 
 function migrate(key, value, cb) {
-  if (key.match(/^zeler!/)) {
-    value.zelerId = key.substring(key.indexOf('!') + 1);
-    mongo.db.collection('zelers_lookup').insert(value, cb);
+  if (key.match(/^copayer!/)) {
+    value.copayerId = key.substring(key.indexOf('!') + 1);
+    mongo.db.collection('copayers_lookup').insert(value, cb);
   } else if (key.match(/!addr!/)) {
     value.walletId = key.substring(2, key.indexOf('!addr'));
     value.network = Bitcore.Address(value.address).toObject().network;
