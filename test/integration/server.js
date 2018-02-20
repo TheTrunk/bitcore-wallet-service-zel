@@ -13,7 +13,6 @@ log.level = 'info';
 var Bitcore = require('bitcore-lib');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: require('bitcore-lib-cash')
 };
 
 
@@ -439,23 +438,6 @@ describe('Wallet service', function() {
       });
     });
 
-    it('should create wallet for another coin', function(done) {
-      var opts = {
-        coin: 'bch',
-        name: 'my wallet',
-        m: 2,
-        n: 3,
-        pubKey: TestData.keyPair.pub,
-      };
-      server.createWallet(opts, function(err, walletId) {
-        should.not.exist(err);
-        server.storage.fetchWallet(walletId, function(err, wallet) {
-          should.not.exist(err);
-          wallet.coin.should.equal('bch');
-          done();
-        });
-      });
-    });
 
     describe('Address derivation strategy', function() {
       var server;
@@ -638,21 +620,6 @@ describe('Wallet service', function() {
             err.message.should.equal('Wallet full');
             done();
           });
-        });
-      });
-
-      it('should fail to join wallet for different coin', function(done) {
-        var copayerOpts = helpers.getSignedCopayerOpts({
-          walletId: walletId,
-          name: 'me',
-          xPubKey: TestData.copayers[0].xPubKey_44H_0H_0H,
-          requestPubKey: TestData.copayers[0].pubKey_1H_0,
-          coin: 'bch',
-        });
-        server.joinWallet(copayerOpts, function(err) {
-          should.exist(err);
-          err.message.should.contain('different coin');
-          done();
         });
       });
 
@@ -1279,17 +1246,6 @@ describe('Wallet service', function() {
     });
 
 
-    describe('shared wallets (BIP44/BCH)', function() {
-      beforeEach(function(done) {
-        helpers.createAndJoinWallet(2, 2, {
-          coin: 'bch'
-        }, function(s, w) {
-          server = s;
-          wallet = w;
-          done();
-        });
-      });
-
       it('should create address', function(done) {
         server.createAddress({}, function(err, address) {
           should.not.exist(err);
@@ -1300,7 +1256,6 @@ describe('Wallet service', function() {
           address.isChange.should.be.false;
           address.path.should.equal('m/0/0');
           address.type.should.equal('P2SH');
-          address.coin.should.equal('bch');
           server.getNotifications({}, function(err, notifications) {
             should.not.exist(err);
             var notif = _.find(notifications, {
@@ -1957,20 +1912,6 @@ describe('Wallet service', function() {
         });
       });
     });
-    it('should get balance for a different coin', function(done) {
-      helpers.stubUtxos(server, wallet, 1, function() {
-        var spy = sinon.spy(server, '_getBlockchainExplorer');
-        server.getBalance({
-          coin: 'bch'
-        }, function(err, balance) {
-          should.not.exist(err);
-          should.exist(balance);
-          var args = spy.getCalls()[0].args;
-          args[0].should.equal('bch');
-          done();
-        });
-      });
-    });
   });
 
   describe('#getBalance 2 steps', function() {
@@ -2526,15 +2467,13 @@ describe('Wallet service', function() {
 
   var addrMap = {
     btc: '18PzpUFkFZE8zKWUPvfykkTxmB9oMR8qP7',
-    bch: 'CPrtPWbp8cCftTQu5fzuLG5zPJNDHMMf8X',
   }
 
   var idKeyMap = {
       btc: 'id44btc',
-      bch: 'id44bch',
   };
 
-  _.each(['bch', 'btc'], function(coin) {
+  _.each(['btc'], function(coin) {
   
     describe('#createTx ' + coin, function() {
       var addressStr, idKey;
@@ -7743,58 +7682,5 @@ describe('Wallet service', function() {
       });
     });
   });
-
-  describe('BTC & BCH wallets with same seed', function() {
-    var server = {},
-      wallet = {};
-    beforeEach(function(done) {
-      helpers.createAndJoinWallet(1, 1, function(s, w) {
-        server.btc = s;
-        wallet.btc = w;
-        w.copayers[0].id.should.equal(TestData.copayers[0].id44btc);
-        helpers.createAndJoinWallet(1, 1, {
-          coin: 'bch'
-        }, function(s, w) {
-          server.bch = s;
-          wallet.bch = w;
-          w.copayers[0].id.should.equal(TestData.copayers[0].id44bch);
-          done();
-        });
-      });
-    });
-
-    it('should create address', function(done) {
-      server.btc.createAddress({}, function(err, address) {
-        should.not.exist(err);
-        should.exist(address);
-        address.walletId.should.equal(wallet.btc.id);
-        address.coin.should.equal('btc');
-        address.network.should.equal('livenet');
-        address.address.should.equal('1L3z9LPd861FWQhf3vDn89Fnc9dkdBo2CG');
-        server.bch.createAddress({}, function(err, address) {
-          should.not.exist(err);
-          should.exist(address);
-          address.walletId.should.equal(wallet.bch.id);
-          address.coin.should.equal('bch');
-          address.network.should.equal('livenet');
-          address.address.should.equal('CbWsiNjh18ynQYc5jfYhhespEGrAaW8YUq');
-          server.btc.getMainAddresses({}, function(err, addresses) {
-            should.not.exist(err);
-            addresses.length.should.equal(1);
-            addresses[0].coin.should.equal('btc');
-            addresses[0].walletId.should.equal(wallet.btc.id);
-            addresses[0].address.should.equal('1L3z9LPd861FWQhf3vDn89Fnc9dkdBo2CG');
-            server.bch.getMainAddresses({}, function(err, addresses) {
-              should.not.exist(err);
-              addresses.length.should.equal(1);
-              addresses[0].coin.should.equal('bch');
-              addresses[0].walletId.should.equal(wallet.bch.id);
-              addresses[0].address.should.equal('CbWsiNjh18ynQYc5jfYhhespEGrAaW8YUq');
-              done();
-            });
-          });
-        });
-      });
-    });
   });
 });
