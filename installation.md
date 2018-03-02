@@ -18,7 +18,7 @@ npm start
 ### Install BWS from github source
 Use the following steps to Install BWS from github source and run it with defaults.
 ```bash
-git clone https://github.com/Lumiboy/bitcore-wallet-service.git
+git clone https://github.com/zelcash/bitcore-wallet-service.git
 cd bitcore-wallet-service
 npm install
 ```
